@@ -52,17 +52,13 @@ export default function Hero() {
 
           {/* Image */}
           <div className="hidden lg:block">
-            <div className="relative">
-              <div className="absolute -inset-4 rounded-2xl bg-white/10 backdrop-blur-sm" />
-              <Image
-                src="/images/casco-viejo-panama.png"
-                alt="Casco Viejo, Ciudad de Panamá"
-                width={600}
-                height={600}
-                className="relative rounded-2xl shadow-2xl"
-                priority
-              />
-            </div>
+            <Image
+              src="/images/casco-viejo-panama.png"
+              alt="Casco Viejo, Ciudad de Panamá"
+              width={600}
+              height={600}
+              priority
+            />
           </div>
         </div>
       </div>
