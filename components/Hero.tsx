@@ -17,10 +17,10 @@ export default function Hero() {
         />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-end lg:grid-cols-2">
           {/* Text */}
-          <div>
+          <div className="py-20 sm:py-28">
             <p className="text-sm font-semibold uppercase tracking-wider text-dama-blue-100">
               Capítulo oficial de DAMA International
             </p>
@@ -50,13 +50,14 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Image */}
-          <div className="hidden lg:block">
+          {/* Image - flush bottom-right */}
+          <div className="hidden lg:flex lg:items-end lg:justify-end">
             <Image
               src="/images/casco-viejo-panama.png"
               alt="Casco Viejo, Ciudad de Panamá"
               width={600}
               height={600}
+              className="block max-h-[500px] w-auto object-contain object-right-bottom"
               priority
             />
           </div>
