@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { registroSchema } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
+import { sendConfirmationEmail } from "@/lib/email";
 import { z } from "zod";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
       "unknown";
 
     // Rate limiting
-    const { success: allowed } = rateLimit(ip);
+    const { success: allowed } = await rateLimit(ip);
     if (!allowed) {
       return NextResponse.json(
         { success: false, message: "Demasiados intentos. Intenta más tarde." },
@@ -23,8 +24,43 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
+    // Validar CAPTCHA (Cloudflare Turnstile)
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      const turnstileToken = body.turnstileToken;
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { success: false, message: "Verificación de seguridad requerida." },
+          { status: 400 }
+        );
+      }
+
+      const verifyResponse = await fetch(
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            secret: process.env.TURNSTILE_SECRET_KEY,
+            response: turnstileToken,
+            remoteip: ip,
+          }),
+        }
+      );
+
+      const verifyResult = await verifyResponse.json();
+      if (!verifyResult.success) {
+        return NextResponse.json(
+          { success: false, message: "Verificación de seguridad fallida. Intenta de nuevo." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Remove turnstileToken before validation
+    const { turnstileToken: _removed, ...formData } = body;
+
     // Validar datos
-    const validatedData = registroSchema.parse(body);
+    const validatedData = registroSchema.parse(formData);
 
     // Insertar en base de datos
     const result = await sql`
@@ -69,6 +105,11 @@ export async function POST(request: NextRequest) {
     `;
 
     console.log(`Registro exitoso: id=${result.rows[0].id}, ip=${ip}`);
+
+    // Enviar email de confirmación (async, no bloquea el response)
+    sendConfirmationEmail(validatedData.nombreCompleto, validatedData.email).catch(
+      (err) => console.error("Error enviando email:", err)
+    );
 
     return NextResponse.json({
       success: true,

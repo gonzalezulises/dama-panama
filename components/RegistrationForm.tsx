@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { registroSchema, type RegistroFormData } from "@/lib/validation";
 import PrivacyConsent from "@/components/PrivacyConsent";
+import Turnstile from "@/components/Turnstile";
 import { Loader2, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -45,6 +46,16 @@ const errorStyles = "mt-1 text-xs text-accent-red";
 export default function RegistrationForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const hasTurnstile = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+  const onTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const onTurnstileExpire = useCallback(() => {
+    setTurnstileToken(null);
+  }, []);
   const {
     register,
     handleSubmit,
@@ -61,11 +72,20 @@ export default function RegistrationForm() {
 
   async function onSubmit(data: RegistroFormData) {
     setServerError("");
+
+    if (hasTurnstile && !turnstileToken) {
+      setServerError("Por favor completa la verificación de seguridad.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/registro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          ...(turnstileToken && { turnstileToken }),
+        }),
       });
 
       const result = await response.json();
@@ -356,6 +376,9 @@ export default function RegistrationForm() {
           </div>
         </div>
       </fieldset>
+
+      {/* CAPTCHA */}
+      <Turnstile onVerify={onTurnstileVerify} onExpire={onTurnstileExpire} />
 
       {/* Error del servidor */}
       {serverError && (
