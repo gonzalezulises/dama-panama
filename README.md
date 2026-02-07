@@ -1,14 +1,14 @@
-# DAMA Panam&aacute;
+# DAMA Panamá
 
-Sitio web oficial de **DAMA Panam&aacute;** (Data Management Association &ndash; Cap&iacute;tulo Panam&aacute;), organizaci&oacute;n profesional sin fines de lucro dedicada a promover la gesti&oacute;n de datos como disciplina profesional.
+Sitio web oficial de **DAMA Panamá** (Data Management Association – Capítulo Panamá), organización profesional sin fines de lucro dedicada a promover la gestión de datos como disciplina profesional.
 
-**Producci&oacute;n:** https://dama-panama.vercel.app
+**Producción:** https://dama-panama.vercel.app
 
 ---
 
-## Stack Tecnol&oacute;gico
+## Stack Tecnológico
 
-| Capa | Tecnolog&iacute;a |
+| Capa | Tecnología |
 |------|------------|
 | Framework | Next.js 16 (App Router) |
 | Lenguaje | TypeScript 5 (strict mode) |
@@ -16,8 +16,12 @@ Sitio web oficial de **DAMA Panam&aacute;** (Data Management Association &ndash;
 | Estilos | Tailwind CSS 4 |
 | Iconos | Lucide React |
 | Formularios | React Hook Form 7 + Zod 4 |
-| Base de datos | Vercel Postgres |
-| Deploy | Vercel (CI/CD autom&aacute;tico desde GitHub) |
+| Base de datos | Vercel Postgres (Neon) |
+| Rate Limiting | Upstash Redis (sliding window) + fallback in-memory |
+| CAPTCHA | Cloudflare Turnstile |
+| Email | Resend |
+| Auth (Admin) | HMAC-SHA256 tokens con cookie httpOnly |
+| Deploy | Vercel (CI/CD automático desde GitHub) |
 
 ---
 
@@ -26,59 +30,119 @@ Sitio web oficial de **DAMA Panam&aacute;** (Data Management Association &ndash;
 ```
 dama-panama/
 ├── app/
-│   ├── layout.tsx                     # Layout global, SEO, fuentes
-│   ├── page.tsx                       # Landing principal
-│   ├── icon.svg                       # Favicon SVG (data network)
-│   ├── globals.css                    # Tailwind v4 theme (colores DAMA)
-│   ├── nosotros/page.tsx              # Sobre DAMA Internacional y Panam&aacute;
-│   ├── dmbok/page.tsx                 # 11 &aacute;reas de conocimiento DMBOK
-│   ├── certificacion/page.tsx         # Certificaci&oacute;n CDMP (niveles, beneficios)
-│   ├── contacto/page.tsx              # Info de contacto + aviso de privacidad
+│   ├── layout.tsx                        # Layout global, SEO, fuentes, Turnstile script
+│   ├── page.tsx                          # Landing principal
+│   ├── icon.svg                          # Favicon SVG (data network)
+│   ├── globals.css                       # Tailwind v4 theme (colores DAMA)
+│   ├── nosotros/page.tsx                 # Sobre DAMA Internacional y Panamá
+│   ├── dmbok/page.tsx                    # 11 áreas de conocimiento DMBOK
+│   ├── certificacion/page.tsx            # Certificación CDMP (niveles, beneficios)
+│   ├── contacto/page.tsx                 # Info de contacto + aviso de privacidad
 │   ├── grupo-estudio/
-│   │   ├── page.tsx                   # Info del programa + formulario de registro
-│   │   └── confirmacion/page.tsx      # P&aacute;gina de &eacute;xito post-registro
+│   │   ├── page.tsx                      # Info del programa + formulario de registro
+│   │   └── confirmacion/page.tsx         # Página de éxito post-registro
+│   ├── admin/
+│   │   ├── layout.tsx                    # Layout admin (sin Header/Footer públicos)
+│   │   ├── login/page.tsx                # Página de login con contraseña
+│   │   └── page.tsx                      # Dashboard: tabla de registros con búsqueda, filtros, paginación
 │   └── api/
-│       └── registro/route.ts          # POST endpoint (validaci&oacute;n, rate limit, DB)
+│       ├── registro/route.ts             # POST: validación, CAPTCHA, rate limit, DB insert, email
+│       └── admin/
+│           ├── login/route.ts            # POST: autenticación / DELETE: logout
+│           └── registros/route.ts        # GET: listado paginado con filtros (protegido)
 ├── components/
-│   ├── Header.tsx                     # Nav responsiva con men&uacute; mobile
-│   ├── Footer.tsx                     # Links, redes sociales, copyright
-│   ├── Hero.tsx                       # Hero con gradient y CTAs
-│   ├── RegistrationForm.tsx           # Formulario multi-secci&oacute;n con validaci&oacute;n
-│   └── PrivacyConsent.tsx             # Aviso Ley 81 de Panam&aacute;
+│   ├── Header.tsx                        # Nav responsiva con menú mobile
+│   ├── Footer.tsx                        # Links, redes sociales, copyright
+│   ├── Hero.tsx                          # Hero con gradient y CTAs
+│   ├── RegistrationForm.tsx              # Formulario multi-sección con validación + Turnstile
+│   ├── PrivacyConsent.tsx                # Aviso Ley 81 de Panamá
+│   └── Turnstile.tsx                     # Wrapper Cloudflare Turnstile widget
 ├── lib/
-│   ├── validation.ts                  # Zod schema (datos personales, profesionales, consentimiento)
-│   ├── db.ts                          # Conexi&oacute;n Vercel Postgres + schema SQL
-│   └── rate-limit.ts                  # Rate limiter in-memory (IP-based)
+│   ├── validation.ts                     # Zod schema (datos personales, profesionales, consentimiento)
+│   ├── db.ts                             # Conexión Vercel Postgres + schema SQL
+│   ├── rate-limit.ts                     # Upstash Redis sliding window + fallback in-memory
+│   ├── email.ts                          # Envío de email de confirmación con Resend
+│   └── auth.ts                           # HMAC-SHA256 token creation/verification (admin)
+├── middleware.ts                          # Protección de rutas /admin/* (valida cookie token)
 ├── public/
-│   └── images/                        # Im&aacute;genes est&aacute;ticas
-├── next.config.ts                     # Security headers (HSTS, CSP, X-Frame, etc.)
-├── tsconfig.json                      # TypeScript strict mode
-└── .env.example                       # Template de variables de entorno
+│   └── images/                           # Imágenes estáticas
+├── next.config.ts                        # Security headers (HSTS, X-Frame, nosniff, etc.)
+├── tsconfig.json                         # TypeScript strict mode
+└── .env.example                          # Template de variables de entorno
 ```
+
+---
+
+## Flujo de Registro
+
+```
+Usuario → RegistrationForm.tsx
+  ├── Validación client-side (Zod + React Hook Form)
+  ├── Turnstile CAPTCHA (si configurado)
+  └── POST /api/registro
+        ├── Rate limiting (Upstash Redis o in-memory)
+        ├── Validación Turnstile server-side
+        ├── Validación Zod server-side
+        ├── INSERT en Vercel Postgres
+        ├── Email de confirmación (Resend, async)
+        └── Redirect a /grupo-estudio/confirmacion
+```
+
+---
+
+## Panel de Administración
+
+**URL:** `/admin` (protegido por middleware)
+
+- **Login:** `/admin/login` — autenticación con `ADMIN_SECRET`
+- **Dashboard:** `/admin` — tabla de registros con:
+  - Búsqueda por nombre/email
+  - Filtro por estado (pendiente, aprobado, rechazado)
+  - Paginación (20 registros por página)
+  - Logout
+
+**Autenticación:**
+- El login genera un token HMAC-SHA256 firmado con `ADMIN_SECRET`
+- Token almacenado en cookie `admin_token` (httpOnly, secure, sameSite: lax)
+- Expira en 24 horas
+- Middleware valida el token en todas las rutas `/admin/*` excepto `/admin/login`
 
 ---
 
 ## Seguridad
 
 ### Headers HTTP (`next.config.ts`)
-- `X-Frame-Options: DENY` &mdash; anti-clickjacking
-- `X-Content-Type-Options: nosniff` &mdash; anti-MIME sniffing
-- `Strict-Transport-Security` &mdash; fuerza HTTPS (HSTS)
+- `X-Frame-Options: DENY` — anti-clickjacking
+- `X-Content-Type-Options: nosniff` — anti-MIME sniffing
+- `Strict-Transport-Security` — fuerza HTTPS (HSTS)
 - `Referrer-Policy: strict-origin-when-cross-origin`
-- `Permissions-Policy` &mdash; bloquea geolocation, mic, camera
+- `Permissions-Policy` — bloquea geolocation, mic, camera
 
 ### API (`/api/registro`)
-- **Rate limiting:** 5 requests/hora por IP
-- **Validaci&oacute;n:** Zod schema server-side antes de DB
+- **Rate limiting:** 5 requests/hora por IP (Upstash Redis persistent, fallback in-memory)
+- **CAPTCHA:** Cloudflare Turnstile (validación server-side)
+- **Validación:** Zod schema server-side antes de DB
 - **SQL injection:** Queries parametrizados (`@vercel/postgres`)
-- **Error handling:** Mensajes gen&eacute;ricos (sin leaking de internals ni enumeraci&oacute;n de emails)
+- **Error handling:** Mensajes genéricos (sin leaking de internals ni enumeración de emails)
 - **Audit logging:** Registros exitosos logueados con ID e IP
 
-### Compliance &mdash; Ley 81 de Protecci&oacute;n de Datos (Panam&aacute;)
+### Admin (`/admin/*`)
+- **Middleware:** Verifica token HMAC-SHA256 en cookie httpOnly
+- **Token expiration:** 24 horas
+- **Endpoints protegidos:** Verificación de token en cada request API
+
+### Graceful Degradation
+Todos los servicios externos tienen fallback si no están configurados:
+- **Upstash Redis:** Fallback a rate limiting in-memory
+- **Turnstile:** Widget no se renderiza, server omite validación
+- **Resend:** Log de email omitido, registro continúa normalmente
+- **Admin:** Retorna 503 si `ADMIN_SECRET` no está configurado
+
+### Compliance — Ley 81 de Protección de Datos (Panamá)
 - Consentimiento informado obligatorio (checkbox)
 - Aviso de privacidad con derechos ARCO
 - Trazabilidad: IP y timestamp del consentimiento
-- Retenci&oacute;n m&aacute;xima: 7 a&ntilde;os
+- Retención máxima: 7 años
 - Contacto: privacidad@damapanama.org
 
 ---
@@ -87,19 +151,19 @@ dama-panama/
 
 ### Tabla: `registros_grupo_estudio`
 
-| Campo | Tipo | Descripci&oacute;n |
+| Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `id` | SERIAL PK | Identificador |
 | `nombre_completo` | VARCHAR(200) | Nombre del participante |
-| `email` | VARCHAR(254) UNIQUE | Email (constraint &uacute;nico) |
-| `telefono` | VARCHAR(20) | Tel&eacute;fono (opcional) |
-| `pais` | VARCHAR(100) | Pa&iacute;s (default: Panam&aacute;) |
+| `email` | VARCHAR(254) UNIQUE | Email (constraint único) |
+| `telefono` | VARCHAR(20) | Teléfono (opcional) |
+| `pais` | VARCHAR(100) | País (default: Panamá) |
 | `ciudad` | VARCHAR(100) | Ciudad (opcional) |
 | `empresa` | VARCHAR(200) | Empresa (opcional) |
 | `cargo` | VARCHAR(200) | Cargo (opcional) |
 | `sector_industria` | VARCHAR(100) | Sector profesional |
 | `experiencia_gestion_datos` | VARCHAR(50) | Nivel de experiencia |
-| `motivacion` | TEXT | Motivaci&oacute;n para participar |
+| `motivacion` | TEXT | Motivación para participar |
 | `objetivo_certificacion` | BOOLEAN | Planea certificarse CDMP |
 | `disponibilidad_horaria` | VARCHAR(100) | Horario preferido |
 | `tiene_libro_dmbok` | BOOLEAN | Tiene el libro DMBOK |
@@ -107,9 +171,43 @@ dama-panama/
 | `acepta_comunicaciones` | BOOLEAN | Opt-in comunicaciones |
 | `ip_registro` | VARCHAR(45) | IP del registro |
 | `fecha_consentimiento` | TIMESTAMPTZ | Momento del consentimiento |
-| `estado` | VARCHAR(20) | pendiente/confirmado/activo/inactivo |
-| `created_at` | TIMESTAMPTZ | Fecha de creaci&oacute;n |
-| `updated_at` | TIMESTAMPTZ | &Uacute;ltima actualizaci&oacute;n |
+| `estado` | VARCHAR(20) | pendiente/aprobado/rechazado |
+| `created_at` | TIMESTAMPTZ | Fecha de creación |
+| `updated_at` | TIMESTAMPTZ | Última actualización |
+
+**Índices:** `email` (UNIQUE), `estado`, `created_at`
+
+---
+
+## Variables de Entorno
+
+```bash
+# Vercel Postgres (configurado automáticamente al conectar DB)
+POSTGRES_URL=""
+POSTGRES_PRISMA_URL=""
+POSTGRES_URL_NON_POOLING=""
+POSTGRES_USER=""
+POSTGRES_HOST=""
+POSTGRES_PASSWORD=""
+POSTGRES_DATABASE=""
+
+# Upstash Redis (Rate Limiting)
+UPSTASH_REDIS_REST_URL=""
+UPSTASH_REDIS_REST_TOKEN=""
+
+# Admin
+ADMIN_SECRET=""
+
+# Cloudflare Turnstile
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
+TURNSTILE_SECRET_KEY=""
+
+# Email (Resend)
+RESEND_API_KEY=""
+RESEND_FROM_EMAIL=""
+```
+
+**Estado actual en Vercel:** Todas las variables están configuradas en producción.
 
 ---
 
@@ -125,7 +223,10 @@ npm install
 
 # Configurar variables de entorno
 cp .env.example .env.local
-# Editar .env.local con credenciales de Vercel Postgres
+# Editar .env.local con credenciales (o dejar vacías para graceful degradation)
+
+# Obtener env vars de Vercel (si tienes acceso)
+vercel env pull
 
 # Desarrollo
 npm run dev
@@ -138,17 +239,26 @@ npm run build
 
 ## Deploy
 
-El proyecto est&aacute; conectado a Vercel con CI/CD autom&aacute;tico. Cada push a `main` dispara un deploy a producci&oacute;n.
+El proyecto está conectado a Vercel con CI/CD automático. Cada push a `main` dispara un deploy a producción.
 
 ```bash
 # Deploy manual (si se necesita)
 vercel --prod
 ```
 
+**Servicios conectados:**
+- **Vercel Postgres (Neon):** Base de datos `dama-panama-db` en región iad1
+- **Upstash Redis:** Base `dama-panama-ratelimit` para rate limiting persistente
+- **Cloudflare Turnstile:** Widget `DAMA Panamá` en dominio `dama-panama.vercel.app`
+- **Resend:** Email con `onboarding@resend.dev` (cambiar a dominio propio cuando esté verificado)
+
 ---
 
 ## Referencias
 
 - [DAMA International](https://dama.org/)
-- [Certificaci&oacute;n CDMP](https://cdmp.info/)
-- [Ley 81 de 2019 &mdash; Protecci&oacute;n de Datos Personales (Panam&aacute;)](https://antai.gob.pa/)
+- [Certificación CDMP](https://cdmp.info/)
+- [Ley 81 de 2019 — Protección de Datos Personales (Panamá)](https://antai.gob.pa/)
+- [Upstash Redis](https://upstash.com/)
+- [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/)
+- [Resend](https://resend.com/)
