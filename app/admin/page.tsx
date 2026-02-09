@@ -9,9 +9,7 @@ import {
   LogOut,
   Users,
   Loader2,
-  Mail,
 } from "lucide-react";
-import BulkEmailModal from "@/components/BulkEmailModal";
 
 interface Registro {
   id: number;
@@ -42,7 +40,6 @@ export default function AdminDashboard() {
   const [searchInput, setSearchInput] = useState("");
   const [estado, setEstado] = useState("");
   const [loading, setLoading] = useState(true);
-  const [bulkEmailOpen, setBulkEmailOpen] = useState(false);
 
   const fetchRegistros = useCallback(async () => {
     setLoading(true);
@@ -101,22 +98,13 @@ export default function AdminDashboard() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setBulkEmailOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-dama-blue px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-dama-blue-dark"
-          >
-            <Mail size={16} />
-            Envío masivo
-          </button>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
-          >
-            <LogOut size={16} />
-            Salir
-          </button>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+        >
+          <LogOut size={16} />
+          Salir
+        </button>
       </div>
 
       {/* Filters */}
@@ -260,11 +248,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-
-      <BulkEmailModal
-        open={bulkEmailOpen}
-        onClose={() => setBulkEmailOpen(false)}
-      />
     </div>
   );
 }
