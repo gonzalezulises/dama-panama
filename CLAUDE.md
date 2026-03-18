@@ -104,18 +104,25 @@ const { success } = await rateLimit(ip); // async, Redis o fallback in-memory
 if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 ```
 
+## Formulario de registro
+
+El formulario de registro fue migrado a **Tally** (embed iframe). El componente `TallyEmbed.tsx` carga el formulario con ID `rjE2Yv`. Las respuestas se almacenan en Tally y el formulario redirige a `/grupo-estudio/confirmacion` al completarse.
+
+- **API de Tally:** `https://api.tally.so/forms/rjE2Yv` — requiere Bearer token para editar campos
+- **Componentes legacy:** `RegistrationForm.tsx`, `POST /api/registro`, `lib/validation.ts` se conservan pero ya no están en uso activo
+- **Consentimiento Ley 81:** Integrado directamente en el formulario Tally como checkbox obligatorio
+
 ## Cosas importantes
 
 - **Ley 81 de Panamá:** El formulario cumple con la ley de protección de datos. No cambiar la lógica de consentimiento sin revisar compliance.
 - **Next.js 16:** Usa `middleware.ts` que muestra warning de deprecación (recomienda `proxy`). Funciona correctamente.
 - **`RESEND_FROM_EMAIL`** está en `onboarding@resend.dev` (testing). Cambiar cuando se verifique dominio propio en Resend.
-- **Tabla DB:** `registros_grupo_estudio` con campo `estado` (pendiente/aprobado/rechazado). Schema en `lib/db.ts`.
+- **Tabla DB:** `registros_grupo_estudio` con campo `estado` (pendiente/aprobado/rechazado) y `rol_participacion` (estudiante/mentor). Schema en `lib/db.ts`.
 - **El admin NO tiene funcionalidad de cambiar estado** todavía — solo visualiza registros. Es una mejora pendiente.
 
-## Estado actual (Feb 2026)
+## Estado actual (Mar 2026)
 
 Todas las env vars están configuradas en Vercel producción. El sitio está funcional con:
-- Registro con CAPTCHA y rate limiting
-- Email de confirmación post-registro
-- Panel admin con vista de registros
+- Registro via formulario Tally embed (reemplaza React Hook Form + Turnstile)
+- Panel admin con vista de registros (incluye columna de rol)
 - Todas las páginas informativas (DMBOK, Certificación, Nosotros, Contacto)

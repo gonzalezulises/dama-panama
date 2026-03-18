@@ -15,7 +15,7 @@ Sitio web oficial de **DAMA Panamá** (Data Management Association – Capítulo
 | UI | React 19 |
 | Estilos | Tailwind CSS 4 |
 | Iconos | Lucide React |
-| Formularios | React Hook Form 7 + Zod 4 |
+| Formularios | Tally (embed) |
 | Base de datos | Vercel Postgres (Neon) |
 | Rate Limiting | Upstash Redis (sliding window) + fallback in-memory |
 | CAPTCHA | Cloudflare Turnstile |
@@ -39,7 +39,7 @@ dama-panama/
 │   ├── certificacion/page.tsx            # Certificación CDMP (niveles, beneficios)
 │   ├── contacto/page.tsx                 # Info de contacto + aviso de privacidad
 │   ├── grupo-estudio/
-│   │   ├── page.tsx                      # Info del programa + formulario de registro
+│   │   ├── page.tsx                      # Info del programa + formulario Tally embed
 │   │   └── confirmacion/page.tsx         # Página de éxito post-registro
 │   ├── admin/
 │   │   ├── layout.tsx                    # Layout admin (sin Header/Footer públicos)
@@ -54,7 +54,8 @@ dama-panama/
 │   ├── Header.tsx                        # Nav responsiva con menú mobile
 │   ├── Footer.tsx                        # Links, redes sociales, copyright
 │   ├── Hero.tsx                          # Hero con gradient y CTAs
-│   ├── RegistrationForm.tsx              # Formulario multi-sección con validación + Turnstile
+│   ├── TallyEmbed.tsx                    # Embed del formulario Tally (carga dinámica)
+│   ├── RegistrationForm.tsx              # Formulario legacy (React Hook Form + Turnstile)
 │   ├── PrivacyConsent.tsx                # Aviso Ley 81 de Panamá
 │   └── Turnstile.tsx                     # Wrapper Cloudflare Turnstile widget
 ├── lib/
@@ -76,17 +77,13 @@ dama-panama/
 ## Flujo de Registro
 
 ```
-Usuario → RegistrationForm.tsx
-  ├── Validación client-side (Zod + React Hook Form)
-  ├── Turnstile CAPTCHA (si configurado)
-  └── POST /api/registro
-        ├── Rate limiting (Upstash Redis o in-memory)
-        ├── Validación Turnstile server-side
-        ├── Validación Zod server-side
-        ├── INSERT en Vercel Postgres
-        ├── Email de confirmación (Resend, async)
-        └── Redirect a /grupo-estudio/confirmacion
+Usuario → TallyEmbed.tsx (iframe Tally, form ID: rjE2Yv)
+  ├── Formulario gestionado por Tally (validación, campos, UI)
+  ├── Respuestas almacenadas en Tally
+  └── Redirect a /grupo-estudio/confirmacion (configurado en Tally)
 ```
+
+> **Nota:** El formulario anterior (React Hook Form + Zod + Turnstile + API route) fue reemplazado por un embed de Tally para simplificar el mantenimiento. El componente `RegistrationForm.tsx` y el endpoint `POST /api/registro` se conservan como legacy pero ya no están en uso activo.
 
 ---
 
@@ -163,6 +160,7 @@ Todos los servicios externos tienen fallback si no están configurados:
 | `cargo` | VARCHAR(200) | Cargo (opcional) |
 | `sector_industria` | VARCHAR(100) | Sector profesional |
 | `experiencia_gestion_datos` | VARCHAR(50) | Nivel de experiencia |
+| `rol_participacion` | VARCHAR(20) | estudiante/mentor (default: estudiante) |
 | `motivacion` | TEXT | Motivación para participar |
 | `objetivo_certificacion` | BOOLEAN | Planea certificarse CDMP |
 | `disponibilidad_horaria` | VARCHAR(100) | Horario preferido |
