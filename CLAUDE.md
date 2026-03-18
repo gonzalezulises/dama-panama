@@ -54,6 +54,56 @@ Si las variables no están configuradas, cada servicio degrada silenciosamente:
 - **Auth admin:** HMAC-SHA256 token en cookie httpOnly `admin_token` (24h TTL)
 - **Rate limiting:** `rateLimit(ip)` es async, retorna `{ success: boolean }`
 
+## Tabla principal: `registros_grupo_estudio`
+
+```sql
+id SERIAL PRIMARY KEY,
+nombre_completo VARCHAR(200) NOT NULL,
+email VARCHAR(254) NOT NULL UNIQUE,
+telefono VARCHAR(20),
+pais VARCHAR(100) DEFAULT 'Panamá',
+ciudad VARCHAR(100),
+empresa VARCHAR(200),
+cargo VARCHAR(200),
+sector_industria VARCHAR(100),
+experiencia_gestion_datos VARCHAR(50),
+motivacion TEXT,
+objetivo_certificacion BOOLEAN DEFAULT FALSE,
+disponibilidad_horaria VARCHAR(100),
+tiene_libro_dmbok BOOLEAN DEFAULT FALSE,
+acepta_tratamiento_datos BOOLEAN NOT NULL DEFAULT FALSE,
+acepta_comunicaciones BOOLEAN DEFAULT FALSE,
+ip_registro VARCHAR(45),
+fecha_consentimiento TIMESTAMPTZ NOT NULL,
+created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+estado VARCHAR(20) DEFAULT 'pendiente'  -- pendiente | aprobado | rechazado
+```
+
+Índices: `email`, `estado`, `created_at`.
+
+## Patrones de código
+
+### Query a DB
+```typescript
+import { sql } from "@vercel/postgres";
+const { rows } = await sql`SELECT * FROM registros_grupo_estudio WHERE estado = ${estado}`;
+```
+
+### Validación (Zod + React Hook Form)
+```typescript
+import { registroSchema } from "@/lib/validation";
+const parsed = registroSchema.safeParse(body);
+if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+```
+
+### Rate limiting
+```typescript
+import { rateLimit } from "@/lib/rate-limit";
+const { success } = await rateLimit(ip); // async, Redis o fallback in-memory
+if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+```
+
 ## Cosas importantes
 
 - **Ley 81 de Panamá:** El formulario cumple con la ley de protección de datos. No cambiar la lógica de consentimiento sin revisar compliance.

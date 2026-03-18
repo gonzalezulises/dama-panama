@@ -30,12 +30,15 @@ const experiencia = [
   { value: "5+", label: "Más de 5 años" },
 ];
 
+const roles = [
+  { value: "estudiante", label: "Estudiante" },
+  { value: "mentor", label: "Mentor" },
+];
+
 const disponibilidad = [
-  { value: "mananas", label: "Mañanas" },
-  { value: "tardes", label: "Tardes" },
   { value: "noches", label: "Noches" },
   { value: "fines_de_semana", label: "Fines de semana" },
-  { value: "flexible", label: "Flexible" },
+  { value: "ambos", label: "Noches y fines de semana" },
 ];
 
 const inputStyles =
@@ -257,23 +260,31 @@ export default function RegistrationForm() {
           Motivación y Disponibilidad
         </legend>
         <div className="mt-4 space-y-4">
-          <div>
-            <label htmlFor="motivacion" className={labelStyles}>
-              ¿Por qué quieres participar en este grupo?{" "}
-              <span className="text-accent-red">*</span>
-            </label>
-            <textarea
-              id="motivacion"
-              rows={4}
-              className={inputStyles}
-              {...register("motivacion")}
-            />
-            {errors.motivacion && (
-              <p className={errorStyles}>{errors.motivacion.message}</p>
-            )}
-          </div>
-
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="rolParticipacion" className={labelStyles}>
+                ¿Cómo deseas participar?{" "}
+                <span className="text-accent-red">*</span>
+              </label>
+              <select
+                id="rolParticipacion"
+                className={inputStyles}
+                {...register("rolParticipacion")}
+              >
+                <option value="">Selecciona...</option>
+                {roles.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+              {errors.rolParticipacion && (
+                <p className={errorStyles}>
+                  {errors.rolParticipacion.message}
+                </p>
+              )}
+            </div>
+
             <div>
               <label htmlFor="disponibilidadHoraria" className={labelStyles}>
                 Disponibilidad horaria{" "}
@@ -297,6 +308,22 @@ export default function RegistrationForm() {
                 </p>
               )}
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="motivacion" className={labelStyles}>
+              ¿Por qué quieres participar en este grupo?{" "}
+              <span className="text-accent-red">*</span>
+            </label>
+            <textarea
+              id="motivacion"
+              rows={4}
+              className={inputStyles}
+              {...register("motivacion")}
+            />
+            {errors.motivacion && (
+              <p className={errorStyles}>{errors.motivacion.message}</p>
+            )}
           </div>
 
           <div className="flex items-start gap-3">

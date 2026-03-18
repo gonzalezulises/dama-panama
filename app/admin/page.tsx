@@ -19,6 +19,7 @@ interface Registro {
   pais: string;
   empresa: string | null;
   experiencia_gestion_datos: string;
+  rol_participacion: string | null;
   estado: string;
   created_at: string;
 }
@@ -160,6 +161,7 @@ export default function AdminDashboard() {
                 <th className="px-4 py-3 font-medium text-gray-600">
                   Experiencia
                 </th>
+                <th className="px-4 py-3 font-medium text-gray-600">Rol</th>
                 <th className="px-4 py-3 font-medium text-gray-600">Estado</th>
                 <th className="px-4 py-3 font-medium text-gray-600">Fecha</th>
               </tr>
@@ -167,7 +169,7 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
+                  <td colSpan={9} className="px-4 py-12 text-center">
                     <Loader2
                       size={24}
                       className="mx-auto animate-spin text-dama-blue"
@@ -177,7 +179,7 @@ export default function AdminDashboard() {
               ) : registros.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-4 py-12 text-center text-gray-500"
                   >
                     No se encontraron registros.
@@ -197,6 +199,17 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {r.experiencia_gestion_datos}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          r.rol_participacion === "mentor"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {r.rol_participacion || "estudiante"}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <span

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     [registros, countResult] = await Promise.all([
       sql`
         SELECT id, nombre_completo, email, telefono, pais, empresa,
-               experiencia_gestion_datos, estado, created_at
+               experiencia_gestion_datos, rol_participacion, estado, created_at
         FROM registros_grupo_estudio
         WHERE (nombre_completo ILIKE ${searchPattern} OR email ILIKE ${searchPattern})
           AND estado = ${estado}
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     [registros, countResult] = await Promise.all([
       sql`
         SELECT id, nombre_completo, email, telefono, pais, empresa,
-               experiencia_gestion_datos, estado, created_at
+               experiencia_gestion_datos, rol_participacion, estado, created_at
         FROM registros_grupo_estudio
         WHERE nombre_completo ILIKE ${searchPattern} OR email ILIKE ${searchPattern}
         ORDER BY created_at DESC
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     [registros, countResult] = await Promise.all([
       sql`
         SELECT id, nombre_completo, email, telefono, pais, empresa,
-               experiencia_gestion_datos, estado, created_at
+               experiencia_gestion_datos, rol_participacion, estado, created_at
         FROM registros_grupo_estudio
         WHERE estado = ${estado}
         ORDER BY created_at DESC
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     [registros, countResult] = await Promise.all([
       sql`
         SELECT id, nombre_completo, email, telefono, pais, empresa,
-               experiencia_gestion_datos, estado, created_at
+               experiencia_gestion_datos, rol_participacion, estado, created_at
         FROM registros_grupo_estudio
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}

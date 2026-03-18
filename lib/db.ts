@@ -13,6 +13,7 @@ export async function initDatabase() {
       cargo VARCHAR(200),
       sector_industria VARCHAR(100),
       experiencia_gestion_datos VARCHAR(50),
+      rol_participacion VARCHAR(20) DEFAULT 'estudiante',
       motivacion TEXT,
       objetivo_certificacion BOOLEAN DEFAULT FALSE,
       disponibilidad_horaria VARCHAR(100),

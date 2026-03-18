@@ -34,18 +34,19 @@ export const registroSchema = z.object({
     .optional(),
   experienciaGestionDatos: z.enum(["ninguna", "1-2", "3-5", "5+"]),
 
-  // Motivación
+  // Rol y motivación
+  rolParticipacion: z.enum(["estudiante", "mentor"], {
+    message: "Selecciona tu rol de participación",
+  }),
   motivacion: z
     .string()
     .min(20, "Cuéntanos un poco más sobre tu motivación")
     .max(1000, "Máximo 1000 caracteres"),
   objetivoCertificacion: z.boolean().default(false),
   disponibilidadHoraria: z.enum([
-    "mananas",
-    "tardes",
     "noches",
     "fines_de_semana",
-    "flexible",
+    "ambos",
   ]),
   tieneDMBOK: z.boolean().default(false),
 
