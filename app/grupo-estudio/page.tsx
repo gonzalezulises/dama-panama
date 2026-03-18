@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import RegistrationForm from "@/components/RegistrationForm";
+import TallyEmbed from "@/components/TallyEmbed";
 import {
   BookOpen,
   Clock,
@@ -136,17 +136,8 @@ export default function GrupoEstudioPage() {
 
               {/* Formulario */}
               <div>
-                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-                  <h2 className="text-2xl font-bold text-dama-blue-dark font-[family-name:var(--font-heading)]">
-                    Formulario de Registro
-                  </h2>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Completa el formulario para inscribirte en el Grupo de
-                    Estudio DMBOK v2.
-                  </p>
-                  <div className="mt-6">
-                    <RegistrationForm />
-                  </div>
+                <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                  <TallyEmbed formId="rjE2Yv" />
                 </div>
               </div>
             </div>
